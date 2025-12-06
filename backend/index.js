@@ -1,21 +1,27 @@
-import express from "express"
-import cors from "cors"
-import dotenv from "dotenv"
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
 
+dotenv.config();
 
-dotenv.config()
 const app = express();
 
-//middleware to handle CORS
+const MONGO_URI = process.env.MONGO_URI;
+
+mongoose.connect(MONGO_URI)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("Error connecting to MongoDB:", err));
+
 app.use(cors({
     origin: process.env.FRONT_END_URL || "http://localhost:5173",
-    method: ["GET","POST","PUT","DELETE"],
-    allowedHeaders: ["content-type","authorization"],
-}))
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
-//middeleware to handle JSON object in req body
-app.use(express.json())
+app.use(express.json());
 
-app.listen(3000,() =>{
-    console.log("server is running on port 3000");
-})
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
