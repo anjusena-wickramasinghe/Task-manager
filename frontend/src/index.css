@@ -7,3 +7,13 @@
     --breakpoint-3xl: 1920px;
     --color-primary:#2172f0;
 }
+@layer base {
+    html {
+        font-family: var(--font-display);
+    }
+
+    body{
+        background-color: aliceblue;
+        overflow-x: hidden;
+    }
+}
