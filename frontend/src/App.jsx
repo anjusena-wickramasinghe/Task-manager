@@ -1,23 +1,24 @@
-import React from 'react'
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+// src/App.jsx
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Auth pages
-import Login from "./pages/auth/Login";
-import SignUp from "./pages/auth/SignUp";
+import Login from "./pages/admin/auth/login.jsx";
+import SignUp from "./pages/admin/auth/signup.jsx";
 
 // Admin components
-import Dashboard from "./pages/admin/Dashboard";
-import ManageTasks from "./pages/admin/ManageTasks";
-import ManageUsers from "./pages/admin/ManageUsers";
-import CreateTask from "./pages/admin/CreateTask";
+import Dashboard from "./pages/admin/dashboard.jsx";
+import ManageTasks from "./pages/admin/managetasks.jsx";
+import ManageUsers from "./pages/admin/manageusers.jsx";
+import CreateTask from "./pages/admin/createtask.jsx";
 
 // User components
-import UserDashboard from "./pages/user/UserDashboard";
-import MyTasks from "./pages/user/MyTasks";
-import TaskDetails from "./pages/user/TaskDetails";
+import UserDashboard from "./pages/user/userdashboard.jsx";
+import MyTasks from "./pages/user/mytasks.jsx";
+import TaskDetails from "./pages/user/taskdetails.jsx";
 
 // Protected Route
-import PrivateRoute from "./routes/PrivateRoute";
+import PrivateRoute from "./routes/PrivateRoute.jsx";
 
 const App = () => {
   return (
@@ -45,7 +46,7 @@ const App = () => {
 
       </Routes>
     </BrowserRouter>
-  )
-}
+  );
+};
 
 export default App;
