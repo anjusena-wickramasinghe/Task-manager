@@ -1,34 +1,29 @@
 import User from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 
-
+// SIGNUP
 export const signup = async (req, res, next) => {
     const { name, email, password, profileImageUrl, adminJoinCode } = req.body;
 
-    // Validation
     if (!name || !email || !password) {
         return next(errorHandler(400, "All fields are required"));
     }
 
     try {
-        // Check existing user
-        const isAlreadyExist = await User.findOne({ email });
-        if (isAlreadyExist) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
             return next(errorHandler(400, "User already exists"));
         }
 
-        // Check admin role
         let role = "user";
         if (adminJoinCode && adminJoinCode === process.env.ADMIN_JOIN_CODE) {
             role = "admin";
         }
 
-        // Hash password
         const hashedPassword = bcryptjs.hashSync(password, 10);
 
-        // Create user
         const newUser = new User({
             name,
             email,
@@ -39,43 +34,67 @@ export const signup = async (req, res, next) => {
 
         await newUser.save();
 
-        return res.status(201).json({
+        res.status(201).json({
             success: true,
             message: "Signup successful",
             user: newUser
         });
 
     } catch (error) {
-        return next(errorHandler(500, error.message));
+        next(errorHandler(500, error.message));
     }
 }
 
-export const signin = async (req,res,next)=>{
-    try{
-const{email,password}=req.body
+// SIGNIN
+export const signin = async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
 
-if(!email ||!password || email==="" ||password===""){
-    return next(errorHandler(400,"All fields are required"))
+        if (!email || !password) {
+            return next(errorHandler(400, "All fields are required"));
+        }
+
+        const validUser = await User.findOne({ email });
+        if (!validUser) {
+            return next(errorHandler(404, "User not found"));
+        }
+
+        const isPasswordValid = bcryptjs.compareSync(password, validUser.password);
+        if (!isPasswordValid) {
+            return next(errorHandler(400, "Wrong credentials"));
+        }
+
+        // Include role in JWT for admin checks
+        const token = jwt.sign(
+            { id: validUser._id, role: validUser.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+
+        const { password: pass, ...rest } = validUser._doc;
+
+        res.status(200)
+           .cookie("access_token", token, { httpOnly: true })
+           .json(rest);
+
+    } catch (error) {
+        next(errorHandler(500, error.message));
+    }
 }
 
-const ValidUser=await User.findOne({email})
+// USER PROFILE
+export const userProfile = async (req, res, next) => {
+    try {
+        const foundUser = await User.findById(req.user.id); // use id from JWT
 
-if(!ValidUser){
-    return next(errorHandler(404,"User not found"))
-}
+        if (!foundUser) {
+            return next(errorHandler(404, "User not found!"));
+        }
 
-//compare password
-const validPassword = bcryptjs.compareSync(password,ValidUser.password)
-if(!validPassword){
-    return next(errorHandler(400,"Wrong credentials"))
-}
+        const { password, ...rest } = foundUser._doc;
+        res.status(200).json(rest);
 
-const token = jwt.sign({id:ValidUser._id},process.env.JWT_SECRET)
-
-const{password:pass,...rest} = ValidUser._doc
-
-res.status(200).cookie("access_token",token,{httpOnly:true}).json(rest)
-    }catch(error){
-        next(error)
+    } catch (error) {
+        next(errorHandler(500, error.message));
     }
 }
