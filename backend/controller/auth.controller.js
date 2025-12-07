@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
 import jwt from "jsonwebtoken";
+import user from "../models/user.model.js";
 
 // SIGNUP
 export const signup = async (req, res, next) => {
@@ -81,7 +82,6 @@ export const signin = async (req, res, next) => {
         next(errorHandler(500, error.message));
     }
 }
-
 // USER PROFILE
 export const userProfile = async (req, res, next) => {
     try {
@@ -96,5 +96,28 @@ export const userProfile = async (req, res, next) => {
 
     } catch (error) {
         next(errorHandler(500, error.message));
+    }
+}
+export const updateUserProfile = async (req,res,next)=>{
+    try{
+const user = await user.findById(req.user.id)
+
+if (!User) {
+            return next(errorHandler(404, "User not found"))
+}
+
+user.name = req.body.name || user.name
+user.email = req.body.email || user.email
+
+if(req.body.password){
+    user.password = bcryptjs.hashSync(req.body.password,10)
+
+}
+const updatedUser = await user.save()
+
+const {password:pass,...rest} =user._doc
+res.status(200).json(rest)
+    }catch(error){
+        next(error)
     }
 }
