@@ -150,3 +150,39 @@ export const deleteTask = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateTaskStatus = async (req, res, next) => {
+  try {
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+      return next(errorHandler(404, "Task not found!"));
+    }
+
+    // Check if the logged-in user is assigned to the task
+    const isAssigned = task.assignedTo.some(
+      (userId) => userId.toString() === req.user.id.toString()
+    );
+
+    // Only assigned users or admins can update
+    if (!isAssigned && req.user.role !== "admin") {
+      return next(errorHandler(403, "Unauthorized!"));
+    }
+
+    // Update status
+    task.status = req.body.status || task.status;
+
+    // If completed, mark all checklist items as completed
+    if (task.status === "completed") {
+      task.todoChecklist.forEach((item) => {
+        item.completed = true;
+      });
+    }
+
+    await task.save();
+
+    res.status(200).json({ message: "Task status updated", task });
+  } catch (error) {
+    next(error);
+  }
+};
