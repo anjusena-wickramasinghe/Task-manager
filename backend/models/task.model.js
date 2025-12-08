@@ -1,50 +1,57 @@
 import mongoose from "mongoose";
 
+// Example todoschema (you need to define it before using)
+const todoschema = new mongoose.Schema({
+    task: { type: String, required: true },
+    completed: { type: Boolean, default: false },
+});
+
 const taskschema = new mongoose.Schema(
     {
-        title:{
-            type:String,
-            required:true
+        title: {
+            type: String,
+            required: true,
         },
-        description:{
-            type:string
+        description: {
+            type: String,
         },
-        priority:{
-            type:string,
-            enum:["low","medium","high"],
-            default:"low",
+        priority: {
+            type: String,
+            enum: ["low", "medium", "high"],
+            default: "low",
         },
-        status:{
-            type:string,
-            enum:["pending","in-progress","completed"],
-            default:"pending",
+        status: {
+            type: String,
+            enum: ["pending", "in-progress", "completed"],
+            default: "pending",
         },
-        dueDate:{
-            type:Date,
-            required:true,
+        dueDate: {
+            type: Date,
+            required: true,
         },
-
-        assigenedTo:[{
-            type:mongoose.Schema.types.objectId,
-            ref:"user",
-        },],
-        createdBy:[
+        assignedTo: [
             {
-                type:mongoose.Schema.types.objectId,
-                ref:"users",
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User", // Make sure it matches your User model
             },
         ],
-        attachments:[
+        createdBy: [
             {
-                type:string,
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
             },
         ],
-        todoChecklist:[todoschema],
-        progress:{type:Number,default:0},
+        attachments: [
+            {
+                type: String,
+            },
+        ],
+        todoChecklist: [todoschema],
+        progress: { type: Number, default: 0 },
     },
-    {timestamps:true}
-)
+    { timestamps: true }
+);
 
-const Task = mongoose.model("Task",taskschema)
+const Task = mongoose.model("Task", taskschema);
 
-export default Task
+export default Task;
