@@ -97,5 +97,40 @@ export const getTaskById = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+}
 
+export const updateTask = async (req, res, next) => {
+  try {
+    // Fix: correct req.params.id
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+      return next(errorHandler(404, "Task not found!"));
+    }
+
+    // Update fields
+    task.title = req.body.title || task.title;
+    task.description = req.body.description || task.description;
+    task.priority = req.body.priority || task.priority;
+    task.dueDate = req.body.dueDate || task.dueDate;
+    task.todoChecklist = req.body.todoChecklist || task.todoChecklist;
+    task.attachments = req.body.attachments || task.attachments;
+
+    // AssignedTo validation
+    if (req.body.assignedTo) {
+      if (!Array.isArray(req.body.assignedTo)) {
+        return next(errorHandler(400, "assignedTo must be an array of user IDs"));
+      }
+      task.assignedTo = req.body.assignedTo;
+    }
+
+    const updatedTask = await task.save();
+
+    return res.status(200).json({
+      message: "Task updated successfully!",
+      updatedTask
+    });
+  } catch (error) {
+    next(error);
+  }
+};
