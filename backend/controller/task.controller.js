@@ -185,4 +185,69 @@ export const updateTaskStatus = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+}
+
+export const updateTaskChecklist = async (req, res, next) => {
+  try {
+    const { todoChecklist } = req.body;
+
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+      return next(errorHandler(404, "Task not found!"));
+    }
+
+    // Only assigned users or admins can update
+    const isAssigned = task.assignedTo.some(
+      (userId) => userId.toString() === req.user.id.toString()
+    );
+    if (!isAssigned && req.user.role !== "admin") {
+      return next(errorHandler(403, "Not authorized to update checklist"));
+    }
+
+    // Ensure todoChecklist is always an array and contains required 'title'
+    if (!Array.isArray(todoChecklist)) {
+      return next(errorHandler(400, "todoChecklist must be an array"));
+    }
+
+    for (let i = 0; i < todoChecklist.length; i++) {
+      if (!todoChecklist[i].title) {
+        return next(errorHandler(400, `Checklist item at index ${i} must have a title`));
+      }
+      if (typeof todoChecklist[i].completed !== "boolean") {
+        todoChecklist[i].completed = false; // default if missing
+      }
+    }
+
+    task.todoChecklist = todoChecklist;
+
+    // Calculate progress
+    const completedCount = task.todoChecklist.filter(item => item.completed).length;
+    const totalItems = task.todoChecklist.length;
+    task.progress = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
+
+    // Update status based on progress
+    if (task.progress === 100) {
+      task.status = "completed";
+    } else if (task.progress > 0) {
+      task.status = "In Progress";
+    } else {
+      task.status = "pending";
+    }
+
+    await task.save();
+
+    const updatedTask = await Task.findById(req.params.id).populate(
+      "assignedTo",
+      "name email profileImageUrl"
+    );
+
+    res.status(200).json({
+      message: "Task checklist updated successfully",
+      task: updatedTask
+    });
+
+  } catch (error) {
+    next(error);
+  }
 };
