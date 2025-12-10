@@ -4,21 +4,17 @@ import jwt from "jsonwebtoken";
 // Middleware to verify JWT token
 export const verifyToken = (req, res, next) => {
     try {
-        // Get token from cookies
         const token = req.cookies?.access_token;
 
         if (!token) {
             return next(errorHandler(401, "Unauthorized: No token provided"));
         }
 
-        // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // { id: "...", role: "admin/user" }
-        console.log("Decoded JWT:", req.user);
+        req.user = decoded;
 
         next();
     } catch (err) {
-        console.error("JWT verification error:", err);
         return next(errorHandler(401, "Unauthorized: Invalid token"));
     }
 };

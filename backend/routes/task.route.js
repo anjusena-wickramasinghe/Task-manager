@@ -8,7 +8,8 @@ import { createTask,
     getTasks, 
     updateTask, 
     updateTaskChecklist, 
-    updateTaskStatus } 
+    updateTaskStatus, 
+    userDashboardData} 
     from "../controller/task.controller.js"
 
 const router = express.Router()
@@ -19,6 +20,8 @@ router.post("/create",verifyToken,adminOnly,createTask)
 router.get("/",verifyToken, getTasks)
 
 router.get("/dashboard-data",verifyToken, adminOnly,getDashboardData)
+
+router.get("/user-dashboard-data",verifyToken,userDashboardData)
 
 router.get("/:id",verifyToken,getTaskById)
 
